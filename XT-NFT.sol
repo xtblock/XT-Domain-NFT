@@ -26,6 +26,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     address[] private _voterArray =  [0x7C123Ef0010391EC1C47F951A4f5F324691aC7FE, 0x35C491E8f286E93913e634d90cd39A7F94d45A71];
     
     struct NFTRegisterStruct {
+        address _ownerAddress;
         uint256 _tokenId;
         uint256 _expiryTime;
         //bool _isActive;
@@ -192,11 +193,15 @@ contract XTNFT is ERC721URIStorage,  Ownable {
 
         uint256 newItemId = _tokenIds.current();
         
-        _mint(recipient, newItemId);
+        //_mint(recipient, newItemId);
+        
+        //new Item will be managed by this contract
+        _mint(address(this), newItemId);
         
         _setTokenURI(newItemId, tokenURI);
     
         //nftNameMap[bscNFT] = newItemId;
+        nftNameMap[bscNFT]._ownerAddress = recipient;
         nftNameMap[bscNFT]._tokenId = newItemId;
         nftNameMap[bscNFT]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
         //nftNameMap[bscNFT]._isActive = false;
@@ -317,7 +322,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     {
         require(paymentToken().balanceOf(msg.sender) >= getMintPrice(), "Can't pay nft fee!");
         
-        address owner = ERC721.ownerOf(nftNameMap[nft]._tokenId);
+        //address owner = ERC721.ownerOf(nftNameMap[nft]._tokenId);
+        address owner = nftNameMap[nft]._ownerAddress;
         
         require(
             owner == msg.sender,
