@@ -8,28 +8,16 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-//import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 
 contract XTNFT is ERC721URIStorage,  Ownable {
     
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
     
-    /*
-    struct NFTVoteStruct {
-        uint256 _tokenId;
-        bool _isBlackListed;
-    }
-    
-    mapping(address => NFTVoteStruct) nftVoteMap;
-    */
-    //address[] private _voterArray =  [0x7C123Ef0010391EC1C47F951A4f5F324691aC7FE, 0x35C491E8f286E93913e634d90cd39A7F94d45A71];
-    
     struct NFTRegisterStruct {
         address _ownerAddress;
         uint256 _tokenId;
         uint256 _expiryTime;
-        //bool _isBlackListed;
         bool _forSale;
         uint256 _salePrice;
         string _tokenURI;
@@ -44,31 +32,33 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     
     mapping(address => UserNFTRegisterStruct) nftUserTokenMap;
     
-    uint256 mintPrice = 30000000000000000000;//15 * 10^18
+    uint256 mintPrice = 30000000000000000000;//30 * 10^18 XTT
     using SafeERC20 for IERC20;
     
     uint256 private _activeTime;
 
-    // ERC20 basic payment token contract being held
-    IERC20 private _token;
+    // ERC20 basic payment token contracts being held
+    IERC20 private _tokenForRegisterNFT;
+    IERC20 private _tokenForMarketPlace;
     
     // beneficiary of payment
-    address private _beneficiary = address(this);//0x7C123Ef0010391EC1C47F951A4f5F324691aC7FE;
+    address private _beneficiary;// = address(this);//0x7C123Ef0010391EC1C47F951A4f5F324691aC7FE;
     
-    string[] private _nameXTExt= [".bsc"];
-    string[] private _nameIANAExt= [".com"];
+    string[] private _nameXTExt= [".bsc", ".sol", ".eth", ".ada", ".matic", ".icp", ".dot", ".int", ".all"];
+    //string[] private _nameIANAExt= [".com"];
     
-    uint256 private _marketplaceFee = 2000000000000000000; // 2 %= 2 * 10^18
+    uint256 private _marketplaceFee = 2000000000000000000; // 2 % = 2 * 10^18
     
     constructor() ERC721("XT-Domain-NFT", "XT-Domain-NFT") {
         _activeTime = block.timestamp + 24 hours;
+        _beneficiary = address(this);
     }
     
     function getActiveTime() public view returns (uint256)
     {
         return _activeTime;
     }
-
+    /*
     function setActiveTime(uint256 activeTime_) external onlyOwner {
         require(
             activeTime_ > getActiveTime(),
@@ -82,10 +72,24 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         _activeTime = activeTime_;
     }
+    */
+    
+    //Declare an Event
+    event SetMarketPlaceFee(
+        address indexed caller,
+        uint256 indexed marketplaceFee_
+    );
     
     function setMarketPlaceFee(uint256 marketplaceFee_) external onlyOwner {
         _marketplaceFee = marketplaceFee_;
+        emit SetMarketPlaceFee(msg.sender, marketplaceFee_);
     }
+    
+    //Declare an Event
+    event AddXTExt(
+        address indexed caller,
+        string indexed nameExt_
+    );
     
     function addXTExt( string memory nameExt_) external onlyOwner {
         
@@ -93,7 +97,6 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         for(uint i=0; i< _nameXTExt.length; i++){
             if (keccak256(abi.encodePacked(nameExt_)) == keccak256(abi.encodePacked(_nameXTExt[i]))){
-            //if(nameExt_ === _nameIANAExt[i]){
                 loopCnt = i;
                 break;
             }
@@ -105,63 +108,28 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         );
             
         _nameXTExt.push(nameExt_);
-    }
-    
-    function addIANAExt( string memory nameExt_) external onlyOwner {
-        
-        uint loopCnt = _nameIANAExt.length;
-        
-        for(uint i=0; i< _nameIANAExt.length; i++){
-            if (keccak256(abi.encodePacked(nameExt_)) == keccak256(abi.encodePacked(_nameIANAExt[i]))){
-            //if(nameExt_ === _nameIANAExt[i]){
-                loopCnt = i;
-                break;
-            }
-        }
-        
-        require(
-            loopCnt == _nameIANAExt.length,
-            "The name extension is already existed."
-        );
-            
-        _nameIANAExt.push(nameExt_);
-    }
-    
-    function removeIANAExt( string memory nameExt_) external onlyOwner {
-        
-        uint loopCnt = _nameIANAExt.length;
-        
-        for(uint i=0; i< _nameIANAExt.length; i++){
-            if (keccak256(abi.encodePacked(nameExt_)) == keccak256(abi.encodePacked(_nameIANAExt[i]))){
-            //if(nameExt_ === _nameIANAExt[i]){
-                loopCnt = i;
-                break;
-            }
-        }
-        
-        require(
-            loopCnt < _nameIANAExt.length,
-            "The name extension is not existed."
-        );
-        
-        _nameIANAExt[loopCnt] = _nameIANAExt[_nameIANAExt.length-1];    
-        _nameIANAExt.pop();
+        emit AddXTExt(msg.sender, nameExt_);
     }
     
     function getNameExt()  public view returns (string[] memory) {
         return _nameXTExt;
     }
     
-    function setTokenForPayment(IERC20 token_) external onlyOwner {
-        _token = token_;
-    }
+    //Declare an Event
+    event SetTokenForPayment(
+        address indexed caller,
+        IERC20 indexed token_
+    );
     
-    function balanceTokenForPayment() public view virtual returns (uint256) {
-        return paymentToken().balanceOf(address(this));
-    }
+    //Declare an Event
+    event SetMintPrice(
+        address indexed caller,
+        uint indexed newMintPrice
+    );
     
     function setMintPrice(uint newMintPrice) external onlyOwner {
         mintPrice = newMintPrice;
+        emit SetMintPrice(msg.sender, newMintPrice);
     }
     
     function getMintPrice() public view virtual returns (uint256) {
@@ -174,16 +142,55 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     /**
      * @return the token being held.
      */
-    function paymentToken() public view virtual returns (IERC20) {
-        return _token;
+    function paymentToken(uint paymentId) public view virtual returns (IERC20) {
+        if(paymentId == 1) return _tokenForRegisterNFT;
+        else if(paymentId == 2) return _tokenForMarketPlace;
+        return _tokenForRegisterNFT;
     }
     
+    function setTokenForPayment(IERC20 token_) external onlyOwner {
+        _tokenForRegisterNFT = token_;
+        emit SetTokenForPayment(msg.sender, token_);
+    }
+    
+    function balanceTokenForPayment(uint paymentId) public view virtual returns (uint256) {
+        require(
+            paymentId <= 2,
+            "Unknown payment token"
+        );
+        
+        return paymentToken(paymentId).balanceOf(address(this));
+    }
+    
+    //Declare an Event
+    event WithdrawTokenForPayment(
+        address indexed caller,
+        address indexed beneficiary_,
+        uint256 indexed balance_
+    );
+    
+    function withdrawTokenForPayment(uint paymentId) external {
+        require(
+            paymentId <= 2,
+            "Unknown payment token"
+        );
+        
+        uint256 currentBalance = paymentToken(paymentId).balanceOf(address(this));
+        paymentToken(paymentId).safeTransferFrom(address(this), beneficiary(), currentBalance);
+        emit WithdrawTokenForPayment(address(this), beneficiary(), currentBalance);
+    }
     /**
      * @return the beneficiary of the tokens.
      */
     function beneficiary() public view virtual returns (address) {
         return _beneficiary;
     }
+    
+    //Declare an Event
+    event SetBeneficiary(
+        address indexed caller,
+        address indexed beneficiary_
+    );
     
     function setBeneficiary( address beneficiary_) external onlyOwner {
         require(
@@ -192,39 +199,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         );
         
         _beneficiary = beneficiary_;
+        emit SetBeneficiary(msg.sender, beneficiary_);
     }
-    /*
-    function addWorker( address worker_) external onlyOwner {
-        require(
-            worker_ != address(0),
-            "New worker is the zero address"
-        );
-        
-        _voterArray.push(worker_);
-    }
-    
-    function removeWorker( address worker_) external onlyOwner {
-        require(
-            worker_ != address(0),
-            "worker: new worker is the zero address"
-        );
-        
-        uint loopCnt = _voterArray.length;
-        
-        for(uint i=0; i< _voterArray.length; i++){
-            if(msg.sender == _voterArray[i]){
-                _voterArray[i] = address(0);
-                loopCnt = i;
-                break;
-            }
-        }
-        
-        if(loopCnt == _voterArray.length)
-            require(
-                loopCnt < _voterArray.length,
-                "worker: can't find the worker to replace"
-            );
-    }*/
     
     //Declare an Event
     event RegisteredNewNFT(
@@ -232,9 +208,6 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         string indexed newNFT
     );
     
-    //function mintNFT(address recipient, bytes32 nft, string memory tokenURI)
-    //function mintNFT(address recipient, string memory newNFT, string memory tokenURI)
-    //function registerNFT(address recipient, string memory newNFT, uint nameXTExtId_, string memory tokenURI_, uint numOfYear)
     function registerNFT(string memory newNFT, uint nameXTExtId_, string memory tokenURI_, uint numOfYear)
         public 
         returns (uint256)
@@ -244,7 +217,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
             "ActiveTime: You can't register NFT before the active time."
         );
         
-        require(paymentToken().balanceOf(msg.sender) >= getMintPrice(), "Can't pay nft fee!");
+        require(paymentToken(1).balanceOf(msg.sender) >= getMintPrice(), "Can't pay nft fee!");
         
         require(bytes(newNFT).length > 0, "Can't be blank!");
         
@@ -252,65 +225,66 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         //paymentToken().approve(address(this), getMintPrice());
         
-        paymentToken().safeTransferFrom(msg.sender, beneficiary(), getMintPrice());
+        paymentToken(1).safeTransferFrom(msg.sender, address(this), numOfYear * getMintPrice());
 
-        string memory bscNFT = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
+        string memory fullNFT = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
          
         _tokenIds.increment();
 
         uint256 newItemId = _tokenIds.current();
         
         //_mint(recipient, newItemId);
-        //_mint(msg.sender, newItemId);
+        _mint(msg.sender, newItemId);
         //new Item will be managed by this contract
         //_mint(address(this), newItemId);
         
         //_setTokenURI(newItemId, tokenURI_);
     
         //nftNameMap[bscNFT] = newItemId;
-        nftNameMap[bscNFT]._ownerAddress = msg.sender;//recipient;
-        nftNameMap[bscNFT]._tokenId = newItemId;
-        nftNameMap[bscNFT]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
+        nftNameMap[fullNFT]._ownerAddress = msg.sender;//recipient;
+        nftNameMap[fullNFT]._tokenId = newItemId;
+        nftNameMap[fullNFT]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
         //nftNameMap[bscNFT]._isActive = false;
         //nftNameMap[bscNFT]._isBlackListed = false;
-        nftNameMap[bscNFT]._forSale = false;
-        nftNameMap[bscNFT]._salePrice = 0;
-        nftNameMap[bscNFT]._tokenURI = tokenURI_;
+        nftNameMap[fullNFT]._forSale = false;
+        nftNameMap[fullNFT]._salePrice = 0;
+        nftNameMap[fullNFT]._tokenURI = tokenURI_;
         
         //use the map of address with tokenIds for a better performance when get the list of tokenIds by an address
         nftUserTokenMap[msg.sender]._tokenIds.push(newItemId);
         
         //Emit an event
-        emit RegisteredNewNFT(msg.sender, bscNFT);
+        emit RegisteredNewNFT(msg.sender, fullNFT);
     
         return newItemId;
     }
     
-    function buyNFT(string memory NFTName_)//, uint nameXTExtId_)
-        public
+    //Declare an Event
+    event ExtendNFTSubscription(
+        address indexed caller,
+        string indexed newNFT
+    );
+    
+    function extendNFTSubscription(string memory newNFT, uint nameXTExtId_, uint numOfYear)
+        public 
     {
         require(
             block.timestamp > getActiveTime(),
-            "ActiveTime: You can't buy NFT before the current active time."
+            "ActiveTime: You can't register NFT before the active time."
         );
         
-        require(paymentToken().balanceOf(msg.sender) >= nftNameMap[NFTName_]._salePrice, "Can't pay nft fee!");
+        require(paymentToken(1).balanceOf(msg.sender) >= numOfYear * getMintPrice(), "Can't pay nft fee!");
         
-        //require(bytes(newNFT).length > 0, "Can't be blank!");
+        require(bytes(newNFT).length > 0, "Can't be blank!");
         
-        //require(numOfYear >= 1, "Can't be less than 1 year!");
+        require(numOfYear >= 1, "Can't be less than 1 year!");
         
-        //string memory bscNFT = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
         //paymentToken().approve(address(this), getMintPrice());
         
-        //Need to approve this contract before this transaction
-        safeTransferFrom( nftNameMap[NFTName_]._ownerAddress, address(this), nftNameMap[NFTName_]._tokenId);
-        paymentToken().safeTransferFrom(msg.sender, address(this), nftNameMap[NFTName_]._salePrice);
-        
-        paymentToken().safeTransferFrom(address(this), nftNameMap[NFTName_]._ownerAddress, (100 - _marketplaceFee ) * nftNameMap[NFTName_]._salePrice / 100);
-        //paymentToken().safeTransferFrom(address(this), beneficiary(), _marketplaceFee * nftNameMap[NFTName_]._salePrice / 100);
-        //Need to approve this contract before this transaction
-        safeTransferFrom( address(this), msg.sender, nftNameMap[NFTName_]._tokenId);
+        paymentToken(1).safeTransferFrom(msg.sender, beneficiary(), numOfYear * getMintPrice());
+
+        string memory fullNFT = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
+         
         //_tokenIds.increment();
 
         //uint256 newItemId = _tokenIds.current();
@@ -321,6 +295,173 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         //_mint(address(this), newItemId);
         
         //_setTokenURI(newItemId, tokenURI_);
+    
+        //nftNameMap[bscNFT] = newItemId;
+        //nftNameMap[bscNFT]._ownerAddress = msg.sender;//recipient;
+        //nftNameMap[bscNFT]._tokenId = newItemId;
+        nftNameMap[fullNFT]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
+        //nftNameMap[bscNFT]._isActive = false;
+        //nftNameMap[bscNFT]._isBlackListed = false;
+        //nftNameMap[bscNFT]._forSale = false;
+        //nftNameMap[bscNFT]._salePrice = 0;
+        //nftNameMap[bscNFT]._tokenURI = tokenURI_;
+        
+        //use the map of address with tokenIds for a better performance when get the list of tokenIds by an address
+        //nftUserTokenMap[msg.sender]._tokenIds.push(newItemId);
+        
+        //Emit an event
+        emit ExtendNFTSubscription(msg.sender, fullNFT);
+    
+        //return newItemId;
+    }
+    
+    //Declare an Event
+    event ImportNewNFT(
+        address indexed caller,
+        string indexed newNFT
+    );
+    
+    function importNFT(address recipient, string memory newNFT, string memory tokenURI_, uint numOfYear)
+        public onlyOwner 
+        returns (uint256)
+    {
+        require(
+            block.timestamp > getActiveTime(),
+            "ActiveTime: You can't register NFT before the active time."
+        );
+        
+        require(paymentToken(1).balanceOf(msg.sender) >= numOfYear * getMintPrice(), "Can't pay nft fee!");
+        
+        require(bytes(newNFT).length > 0, "Can't be blank!");
+        
+        require(numOfYear >= 1, "Can't be less than 1 year!");
+        
+        //paymentToken().approve(address(this), getMintPrice());
+        
+        paymentToken(1).safeTransferFrom(msg.sender, beneficiary(), numOfYear * getMintPrice());
+
+        //string memory bscNFT = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
+         
+        _tokenIds.increment();
+
+        uint256 newItemId = _tokenIds.current();
+        
+        _mint(recipient, newItemId);
+        //_mint(msg.sender, newItemId);
+        //new Item will be managed by this contract
+        //_mint(address(this), newItemId);
+        
+        //_setTokenURI(newItemId, tokenURI_);
+    
+        //nftNameMap[bscNFT] = newItemId;
+        nftNameMap[newNFT]._ownerAddress = recipient;
+        nftNameMap[newNFT]._tokenId = newItemId;
+        nftNameMap[newNFT]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
+        //nftNameMap[bscNFT]._isActive = false;
+        //nftNameMap[bscNFT]._isBlackListed = false;
+        nftNameMap[newNFT]._forSale = false;
+        nftNameMap[newNFT]._salePrice = 0;
+        nftNameMap[newNFT]._tokenURI = tokenURI_;
+        
+        //use the map of address with tokenIds for a better performance when get the list of tokenIds by an address
+        nftUserTokenMap[recipient]._tokenIds.push(newItemId);
+        
+        //Emit an event
+        emit ImportNewNFT(recipient, newNFT);
+    
+        return newItemId;
+    }
+    
+    //Declare an Event
+    event ExtendImportedNFTSubscription(
+        address indexed caller,
+        string indexed newNFT,
+        uint indexed numOfYear
+    );
+    
+    function extendImportedNFTSubscription(string memory newNFT, uint numOfYear)
+        public onlyOwner 
+        //returns (uint256)
+    {
+        require(
+            block.timestamp > getActiveTime(),
+            "ActiveTime: You can't register NFT before the active time."
+        );
+        
+        require(paymentToken(1).balanceOf(msg.sender) >= numOfYear * getMintPrice(), "Can't pay nft fee!");
+        
+        require(bytes(newNFT).length > 0, "Can't be blank!");
+        
+        require(numOfYear >= 1, "Can't be less than 1 year!");
+        
+        //paymentToken().approve(address(this), getMintPrice());
+        
+        paymentToken(1).safeTransferFrom(msg.sender, beneficiary(), numOfYear * getMintPrice());
+
+        //string memory bscNFT = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
+         
+        //_tokenIds.increment();
+
+        //uint256 newItemId = _tokenIds.current();
+        
+        //_mint(recipient, newItemId);
+        //_mint(msg.sender, newItemId);
+        //new Item will be managed by this contract
+        //_mint(address(this), newItemId);
+        
+        //_setTokenURI(newItemId, tokenURI_);
+    
+        //nftNameMap[bscNFT] = newItemId;
+        //nftNameMap[newNFT]._ownerAddress = recipient;
+        //nftNameMap[newNFT]._tokenId = newItemId;
+        nftNameMap[newNFT]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
+        //nftNameMap[bscNFT]._isActive = false;
+        //nftNameMap[bscNFT]._isBlackListed = false;
+        //nftNameMap[newNFT]._forSale = false;
+        //nftNameMap[newNFT]._salePrice = 0;
+        //nftNameMap[newNFT]._tokenURI = tokenURI_;
+        
+        //use the map of address with tokenIds for a better performance when get the list of tokenIds by an address
+        //nftUserTokenMap[recipient]._tokenIds.push(newItemId);
+        
+        //Emit an event
+        emit ExtendImportedNFTSubscription(msg.sender, newNFT, numOfYear);
+    
+        //return newItemId;
+    }
+    
+    //Declare an Event
+    event BuyNFTFromMarketPlace(
+        address indexed caller,
+        string indexed NFTName_
+    );
+    
+    function buyNFTFromMarketPlace(string memory NFTName_)//, uint nameXTExtId_)
+        public
+    {
+        require(
+            block.timestamp > getActiveTime(),
+            "ActiveTime: You can't buy NFT before the current active time."
+        );
+        
+        require(paymentToken(2).balanceOf(msg.sender) >= nftNameMap[NFTName_]._salePrice, "Can't pay nft fee!");
+        
+        //require(bytes(newNFT).length > 0, "Can't be blank!");
+        
+        //require(numOfYear >= 1, "Can't be less than 1 year!");
+        
+        //string memory bscNFT = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
+        //paymentToken().approve(address(this), getMintPrice());
+        
+        //Need to approve this contract before this transaction
+        safeTransferFrom( nftNameMap[NFTName_]._ownerAddress, address(this), nftNameMap[NFTName_]._tokenId);
+        paymentToken(2).safeTransferFrom(msg.sender, address(this), nftNameMap[NFTName_]._salePrice);
+        
+        paymentToken(2).safeTransferFrom(address(this), nftNameMap[NFTName_]._ownerAddress, (100 - _marketplaceFee ) * nftNameMap[NFTName_]._salePrice / 100);
+        //paymentToken().safeTransferFrom(address(this), beneficiary(), _marketplaceFee * nftNameMap[NFTName_]._salePrice / 100);
+        //Need to approve this contract before this transaction
+        safeTransferFrom( address(this), msg.sender, nftNameMap[NFTName_]._tokenId);
+
         uint arrayLength = nftUserTokenMap[nftNameMap[NFTName_]._ownerAddress]._tokenIds.length;
         
         uint foundId = arrayLength;
@@ -333,24 +474,26 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         if(foundId < arrayLength){
             nftUserTokenMap[nftNameMap[NFTName_]._ownerAddress]._tokenIds[foundId] = nftUserTokenMap[nftNameMap[NFTName_]._ownerAddress]._tokenIds[arrayLength - 1];
-            nftUserTokenMap[nftNameMap[NFTName_]._ownerAddress]._tokenIds.pop();//[foundId];
+            nftUserTokenMap[nftNameMap[NFTName_]._ownerAddress]._tokenIds.pop();
         }
-        //nftNameMap[bscNFT] = newItemId;
+
         nftNameMap[NFTName_]._ownerAddress = msg.sender;//recipient;
-        //nftNameMap[NFTName_]._tokenId = newItemId;
-        //nftNameMap[NFTName_]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
-        //nftNameMap[bscNFT]._isActive = false;
-        //nftNameMap[NFTName_]._isBlackListed = false;
         nftNameMap[NFTName_]._forSale = false;
         nftNameMap[NFTName_]._salePrice = 0;
-        //nftNameMap[NFTName_]._tokenURI = tokenURI_;
         
         //use the map of address with tokenIds for a better performance when get the list of tokenIds by an address
         nftUserTokenMap[msg.sender]._tokenIds.push(nftNameMap[NFTName_]._tokenId);
         
         //Emit an event
-        emit RegisteredNewNFT(msg.sender, NFTName_);
+        emit BuyNFTFromMarketPlace(msg.sender, NFTName_);
     }
+    
+    //Declare an Event
+    event SetNFTSalePrice(
+        address indexed caller,
+        string indexed NFTName_,
+        uint256 salePrice_
+    );
     
     function setNFTSalePrice(string memory NFTName_, uint256 salePrice_) external {
         
@@ -363,10 +506,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         nftNameMap[NFTName_]._forSale = true;
         nftNameMap[NFTName_]._salePrice = salePrice_;
+        emit SetNFTSalePrice(msg.sender, NFTName_, salePrice_);
     }
-    
-    //NFT exchange
-    
     
     //get tokenIds by address
     function getTokenIdsByAddress(address walletAddress) public view returns (uint256[] memory tokenIds)
@@ -374,65 +515,36 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         return  nftUserTokenMap[walletAddress]._tokenIds;
     }
     
-    /*
-    function blacklistNFT(string memory newNFT)
-        public 
-        //returns (uint256)
+    function getNFTURI(string memory NFTName) public view returns (string memory)
     {
-        uint foundAddressID = _voterArray.length;
- 
-        //require(
-           // recipient != address(0),
-            //"recipient: the recipient is the zero address"
-        //);
+        //require(nftNameMap[nft]._isBlackListed == false, "This NFT has been blacklisted.");
+        require(nftNameMap[NFTName]._expiryTime > block.timestamp, "This NFT has been expired. Owner need to extend its subscription time.");
         
-        for(uint i=0; i< _voterArray.length; i++){
-            if(msg.sender == _voterArray[i]){
-                foundAddressID = i;
-                break;
-            }
-        }
-        
-        require(foundAddressID == _voterArray.length, "There is no permission to blacklist NFT");
-        
-        //require(token().balanceOf(address(this)) >= mintPrice, "There is not enough fund pay minting fee!");
-         
-        //_tokenIds.increment();
-
-        //uint256 newItemId = _tokenIds.current();
-        //_mint(recipient, newItemId);
-        //_setTokenURI(newItemId, tokenURI);
-        
-        //nftNameMap[newNFT] = newItemId;
-        require(_exists(nftNameMap[newNFT]._tokenId), "ERC721Metadata: URI query for nonexistent token");
-        //nftNameMap[newNFT]._isActive = true;
-        nftNameMap[newNFT]._isBlackListed = true;
-        
-        //return newItemId;
+        return tokenURI(nftNameMap[NFTName]._tokenId);
     }
-    */
-    function setNFTURI(string memory nft, string memory tokenURI) public
+    
+    //Declare an Event
+    event SetNFTURI(
+        address indexed caller,
+        string indexed NFTName_,
+        string indexed tokenURI
+    );
+    
+    function setNFTURI(string memory NFTName_, string memory tokenURI) public
     {
-        require(paymentToken().balanceOf(msg.sender) >= getMintPrice(), "Can't pay nft fee!");
+        require(paymentToken(1).balanceOf(msg.sender) >= getMintPrice(), "Can't pay nft fee!");
         
         //address owner = ERC721.ownerOf(nftNameMap[nft]._tokenId);
-        address owner = nftNameMap[nft]._ownerAddress;
+        address owner = nftNameMap[NFTName_]._ownerAddress;
         
         require(
             owner == msg.sender,
             "Ownable: caller is not the current owner"
         );
         
-        paymentToken().safeTransferFrom(msg.sender, beneficiary(), getMintPrice());
+        paymentToken(1).safeTransferFrom(msg.sender, beneficiary(), getMintPrice());
         
-        _setTokenURI(nftNameMap[nft]._tokenId, tokenURI);
-    }
-    
-    function getNFTURI(string memory nft) public view returns (string memory)
-    {
-        //require(nftNameMap[nft]._isBlackListed == false, "This NFT has been blacklisted.");
-        require(nftNameMap[nft]._expiryTime > block.timestamp, "This NFT has been expired. Owner need to extend its subscription time.");
-        
-        return tokenURI(nftNameMap[nft]._tokenId);
+        _setTokenURI(nftNameMap[NFTName_]._tokenId, tokenURI);
+        emit SetNFTURI(msg.sender, NFTName_, tokenURI);
     }
 }
