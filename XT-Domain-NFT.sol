@@ -224,7 +224,9 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         require(bytes(newNFT).length > 0, "Can't be blank!");
         
-        require(numOfYear >= 1, "Can't be less than 1 year!");
+        require(numOfYear >= 1 && numOfYear <= 10, "Can't be less than 1 year or greater than 10 years!");
+        
+        require(nameXTExtId_ < _nameXTExt.length , "Out of array.");
         
         //paymentToken().approve(address(this), getMintPrice());
         
@@ -280,7 +282,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         require(bytes(newNFT).length > 0, "Can't be blank!");
         
-        require(numOfYear >= 1, "Can't be less than 1 year!");
+        require(numOfYear >= 1 && numOfYear <= 10, "Can't be less than 1 year or greater than 10 years!");
         
         require(nameXTExtId_ < _nameXTExt.length , "Out of array.");
         
@@ -335,11 +337,18 @@ contract XTNFT is ERC721URIStorage,  Ownable {
             "ActiveTime: You can't register NFT before the active time."
         );
         
+        require(
+            recipient != address(0),
+            "recipient is the zero address"
+        );
+        
         require(paymentToken(1).balanceOf(msg.sender) >= numOfYear * getMintPrice(), "Can't pay nft fee!");
         
-        require(bytes(newNFT).length > 0, "Can't be blank!");
+        require(bytes(newNFT).length > 0, "newNFT: Can't be blank!");
         
-        require(numOfYear >= 1, "Can't be less than 1 year!");
+        require(bytes(tokenURI_).length > 0, "tokenURI: Can't be blank!");
+        
+        require(numOfYear >= 1 && numOfYear <= 10, "Can't be less than 1 year or greater than 10 years!");
         
         //paymentToken().approve(address(this), getMintPrice());
         
@@ -395,9 +404,9 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         require(paymentToken(1).balanceOf(msg.sender) >= numOfYear * getMintPrice(), "Can't pay nft fee!");
         
-        require(bytes(newNFT).length > 0, "Can't be blank!");
+        require(bytes(newNFT).length > 0, "newNFT: Can't be blank!");
         
-        require(numOfYear >= 1, "Can't be less than 1 year!");
+        require(numOfYear >= 1 && numOfYear <= 10, "Can't be less than 1 year or greater than 10 years!");
         
         //paymentToken().approve(address(this), getMintPrice());
         
@@ -448,6 +457,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
             block.timestamp > getActiveTime(),
             "ActiveTime: You can't buy NFT before the current active time."
         );
+        
+        require(bytes(NFTName_).length > 0, "NFTName_: Can't be blank!");
         
         require(paymentToken(2).balanceOf(msg.sender) >= nftNameMap[NFTName_]._salePrice, "Can't pay nft fee!");
         
@@ -547,7 +558,11 @@ contract XTNFT is ERC721URIStorage,  Ownable {
             "Ownable: caller is not the current owner"
         );
         
+        
         paymentToken(1).safeTransferFrom(msg.sender, beneficiary(), getMintPrice());
+        
+        require(bytes(NFTName_).length > 0, "NFTName_: Can't be blank!");
+        require(bytes(tokenURI).length > 0, "tokenURI: Can't be blank!");
         
         _setTokenURI(nftNameMap[NFTName_]._tokenId, tokenURI);
         emit SetNFTURI(msg.sender, NFTName_, tokenURI);
