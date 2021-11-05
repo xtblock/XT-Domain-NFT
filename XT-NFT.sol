@@ -23,16 +23,17 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         string _tokenURI;
     }
     
-    mapping(string => NFTRegisterStruct) nftNameMap;
+    mapping(string => NFTRegisterStruct) private nftNameMap;
     
     //mapping with wallet address for a better performance
     struct UserNFTRegisterStruct {
         uint256[] _tokenIds;
     }
     
-    mapping(address => UserNFTRegisterStruct) nftUserTokenMap;
+    mapping(address => UserNFTRegisterStruct) private nftUserTokenMap;
     
-    uint256 mintPrice = 30000000000000000000;//30 * 10^18 XTT
+    uint256 private mintPrice = 30000000000000000000;//30 * 10^18 XTT
+    
     using SafeERC20 for IERC20;
     
     uint256 private _activeTime;
@@ -176,6 +177,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         );
         
         uint256 currentBalance = paymentToken(paymentId).balanceOf(address(this));
+        require (currentBalance > 0, "Current Balance is too small to withdraw.");
+        
         paymentToken(paymentId).safeTransferFrom(address(this), beneficiary(), currentBalance);
         emit WithdrawTokenForPayment(address(this), beneficiary(), currentBalance);
     }
@@ -278,6 +281,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         require(bytes(newNFT).length > 0, "Can't be blank!");
         
         require(numOfYear >= 1, "Can't be less than 1 year!");
+        
+        require(nameXTExtId_ < _nameXTExt.length , "Out of array.");
         
         //paymentToken().approve(address(this), getMintPrice());
         
