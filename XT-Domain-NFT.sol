@@ -10,7 +10,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
 contract XTNFT is ERC721URIStorage,  Ownable {
-    address _contractOwner;
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
     
@@ -32,8 +31,6 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     
     mapping(address => UserNFTRegisterStruct) private nftUserTokenMap;
     
-    uint256 private mintPrice = 30000000000000000000;//30 * 10^18 tokens
-    
     using SafeERC20 for IERC20;
     
     uint256 private _activeTime;
@@ -43,20 +40,25 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     IERC20 private _tokenForMarketPlace;
     
     // beneficiary of payment
-    address private _beneficiary;// = address(this);//0x7C123Ef0010391EC1C47F951A4f5F324691aC7FE;
+    address private _newBeneficiary;
+    address private _beneficiary;
+    uint256 private _beneficiaryActiveTime;
     
     address private _worker;
     
     string[] private _nameXTExt= [".alt", ".bsc", ".int", ".xt"];
     //string[] private _nameIANAExt= [".com"];
     
-    uint256 private _marketplaceFee = 2000000000000000000; // 2 % = 2 * 10^18
+    uint256 private mintPrice = 30000000000000000000;//30 * 10^18 tokens
+    uint256 private _marketplaceFee = 2000000000000000000; // 2 = 2 * 10^18 %
     
     constructor() ERC721("XT-Domain-NFT", "XT-Domain-NFT") {
         _activeTime = block.timestamp + 24 hours;
         _beneficiary = address(this);
+        _newBeneficiary = address(this);
+        _beneficiaryActiveTime = block.timestamp;
+        
         _worker = msg.sender;
-        _contractOwner = msg.sender;
     }
     
     function getWorker() external onlyOwner view returns (address) {
@@ -153,9 +155,13 @@ contract XTNFT is ERC721URIStorage,  Ownable {
      * @return the token being held.
      */
     function paymentToken(uint paymentId) public view virtual returns (IERC20) {
+        require(
+            paymentId <= 2,
+            "Unknown payment token"
+        );
+        
         if(paymentId == 1) return _tokenForRegisterNFT;
-        else if(paymentId == 2) return _tokenForMarketPlace;
-        return _tokenForRegisterNFT;
+        return _tokenForMarketPlace;
     }
     
     function setTokenForPayment(IERC20 token_) external onlyOwner {
@@ -185,7 +191,9 @@ contract XTNFT is ERC721URIStorage,  Ownable {
             "Unknown payment token"
         );
         
-        require(msg.sender == _worker || msg.sender == _contractOwner, "Invalid caller!");
+        if(_beneficiary != _newBeneficiary && block.timestamp > _beneficiaryActiveTime) _beneficiary = _newBeneficiary;
+        
+        require(msg.sender == _worker || msg.sender == owner(), "Invalid caller!");
         
         uint256 currentBalance = paymentToken(paymentId).balanceOf(address(this));
         
@@ -202,7 +210,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     //Declare an Event
     event SetBeneficiary(
         address indexed caller,
-        address indexed beneficiary_
+        address indexed beneficiary_,
+        uint256 indexed activeTime
     );
     
     function setBeneficiary( address beneficiary_) external onlyOwner {
@@ -211,8 +220,10 @@ contract XTNFT is ERC721URIStorage,  Ownable {
             "New beneficiary is the zero address"
         );
         
-        _beneficiary = beneficiary_;
-        emit SetBeneficiary(msg.sender, beneficiary_);
+        _newBeneficiary = beneficiary_;
+        _beneficiaryActiveTime = block.timestamp + 24 hours;
+        
+        emit SetBeneficiary(msg.sender, beneficiary_, _beneficiaryActiveTime);
     }
     
     //Declare an Event
@@ -229,6 +240,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
             block.timestamp > getActiveTime(),
             "ActiveTime: You can't register NFT before the active time."
         );
+        
+        if(_beneficiary != _newBeneficiary && block.timestamp > _beneficiaryActiveTime) _beneficiary = _newBeneficiary;
         
         require(paymentToken(1).balanceOf(msg.sender) >= getMintPrice(), "Can't pay nft fee!");
         
@@ -278,6 +291,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
             "ActiveTime: You can't register NFT before the active time."
         );
         
+        if(_beneficiary != _newBeneficiary && block.timestamp > _beneficiaryActiveTime) _beneficiary = _newBeneficiary;
+        
         require(paymentToken(1).balanceOf(msg.sender) >= numOfYear * getMintPrice(), "Can't pay nft fee!");
         
         require(bytes(newNFT).length > 0, "Can't be blank!");
@@ -310,6 +325,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
             block.timestamp > getActiveTime(),
             "ActiveTime: You can't register NFT before the active time."
         );
+        
+        if(_beneficiary != _newBeneficiary && block.timestamp > _beneficiaryActiveTime) _beneficiary = _newBeneficiary;
         
         require(
             recipient != address(0),
@@ -362,6 +379,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
             block.timestamp > getActiveTime(),
             "ActiveTime: You can't register NFT before the active time."
         );
+        
+        if(_beneficiary != _newBeneficiary && block.timestamp > _beneficiaryActiveTime) _beneficiary = _newBeneficiary;
         
         require(paymentToken(1).balanceOf(msg.sender) >= numOfYear * getMintPrice(), "Can't pay nft fee!");
         
@@ -473,6 +492,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     function setNFTURI(string memory NFTName_, string memory tokenURI) public
     {
         require(paymentToken(1).balanceOf(msg.sender) >= getMintPrice(), "Can't pay nft fee!");
+        
+        if(_beneficiary != _newBeneficiary && block.timestamp > _beneficiaryActiveTime) _beneficiary = _newBeneficiary;
         
         address owner = nftNameMap[NFTName_]._ownerAddress;
         
