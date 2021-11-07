@@ -57,7 +57,6 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         _beneficiary = address(this);
         _newBeneficiary = address(this);
         _beneficiaryActiveTime = block.timestamp;
-        
         _worker = msg.sender;
     }
     
@@ -139,7 +138,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         uint indexed newMintPrice
     );
     
-    function setMintPrice(uint newMintPrice) external onlyOwner {
+    function setMintPrice(uint256 newMintPrice) external onlyOwner {
         mintPrice = newMintPrice;
         emit SetMintPrice(msg.sender, newMintPrice);
     }
