@@ -25,6 +25,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     }
     
     mapping(string => NFTRegisterStruct) private nftNameMap;
+    mapping(uint256 => string) private nftIdNameMap;
     
     //mapping with wallet address for a better performance
     struct UserNFTRegisterStruct {
@@ -280,6 +281,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         //use the map of address with tokenIds for a better performance when get the list of tokenIds by an address
         nftUserTokenMap[msg.sender]._tokenIds.push(newItemId);
         nftExtTokenMap[_nameXTExt[nameXTExtId_]]._tokenIds.push(newItemId);
+        nftIdNameMap[newItemId] = fullNFT;
         
         //Emit an event
         emit RegisteredNewNFT(msg.sender, fullNFT);
@@ -371,6 +373,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         //use the map of address with tokenIds for a better performance when get the list of tokenIds by an address
         nftUserTokenMap[recipient]._tokenIds.push(newItemId);
         nftExtTokenMap[_nameXTExt[nameXTExtId_]]._tokenIds.push(newItemId);
+        nftIdNameMap[newItemId] = newNFT;
         
         //Emit an event
         emit ImportNewNFT(recipient, newNFT);
@@ -501,9 +504,14 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         return tokenURI(nftNameMap[NFTName]._tokenId);
     }
     
-    function getNFTData(string memory NFTName) public view returns (NFTRegisterStruct memory)
+    function getNFTDataByName(string memory NFTName) public view returns (NFTRegisterStruct memory)
     {
         return nftNameMap[NFTName];
+    }
+    
+    function getNFTDataById(uint256 tokenId_) public view returns (NFTRegisterStruct memory)
+    {
+        return nftNameMap[nftIdNameMap[tokenId_]];
     }
     
     //Declare an Event
