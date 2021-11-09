@@ -501,6 +501,11 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         return tokenURI(nftNameMap[NFTName]._tokenId);
     }
     
+    function getNFTData(string memory NFTName) public view returns (NFTRegisterStruct memory)
+    {
+        return nftNameMap[NFTName];
+    }
+    
     //Declare an Event
     event SetNFTURI(
         address indexed caller,
