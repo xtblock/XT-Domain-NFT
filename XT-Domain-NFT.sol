@@ -331,7 +331,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         string indexed newNFT
     );
     
-    function importNFT(address recipient, string memory newNFT, uint nameXTExtId_, string memory tokenURI_, uint numOfYear)
+    function importNFT(address recipient, string memory newNFT, string memory nameXTExt, string memory tokenURI_, uint numOfYear)
         public onlyOwner 
         returns (uint256)
     {
@@ -357,7 +357,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         paymentToken(1).safeTransferFrom(msg.sender, beneficiary(), numOfYear * getMintPrice());
         
-        string memory fullNFT = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
+        string memory fullNFT = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, nameXTExt)) : "";
         
         _tokenIds.increment();
 
@@ -373,11 +373,11 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         nftNameMap[fullNFT]._salePrice = 0;
         nftNameMap[fullNFT]._tokenURI = tokenURI_;
         nftNameMap[fullNFT]._nftName = newNFT;
-        nftNameMap[fullNFT]._nameXTExt = _nameXTExt[nameXTExtId_];
+        nftNameMap[fullNFT]._nameXTExt = nameXTExt;
         
         //use the map of address with tokenIds for a better performance when get the list of tokenIds by an address
         nftUserTokenMap[recipient]._tokenIds.push(newItemId);
-        nftExtTokenMap[_nameXTExt[nameXTExtId_]]._tokenIds.push(newItemId);
+        nftExtTokenMap[nameXTExt]._tokenIds.push(newItemId);
         nftIdNameMap[newItemId] = fullNFT;
         
         //Emit an event
