@@ -21,6 +21,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         bool _forSale;
         uint256 _salePrice;
         string _tokenURI;
+        string _nftName;
         string _nameXTExt;
     }
     
@@ -277,6 +278,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         nftNameMap[fullNFT]._forSale = false;
         nftNameMap[fullNFT]._salePrice = 0;
         nftNameMap[fullNFT]._tokenURI = tokenURI_;
+        nftNameMap[fullNFT]._nftName = newNFT;
         nftNameMap[fullNFT]._nameXTExt = _nameXTExt[nameXTExtId_];
         //use the map of address with tokenIds for a better performance when get the list of tokenIds by an address
         nftUserTokenMap[msg.sender]._tokenIds.push(newItemId);
@@ -354,29 +356,32 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         require(numOfYear >= 1 && numOfYear <= 10, "Can't be less than 1 year or greater than 10 years!");
         
         paymentToken(1).safeTransferFrom(msg.sender, beneficiary(), numOfYear * getMintPrice());
-         
+        
+        string memory fullNFT = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
+        
         _tokenIds.increment();
 
         uint256 newItemId = _tokenIds.current();
         
         _mint(recipient, newItemId);
 
-        nftNameMap[newNFT]._ownerAddress = recipient;
-        nftNameMap[newNFT]._tokenId = newItemId;
-        nftNameMap[newNFT]._beginTime = block.timestamp;
-        nftNameMap[newNFT]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
-        nftNameMap[newNFT]._forSale = false;
-        nftNameMap[newNFT]._salePrice = 0;
-        nftNameMap[newNFT]._tokenURI = tokenURI_;
-        nftNameMap[newNFT]._nameXTExt = _nameXTExt[nameXTExtId_];
+        nftNameMap[fullNFT]._ownerAddress = recipient;
+        nftNameMap[fullNFT]._tokenId = newItemId;
+        nftNameMap[fullNFT]._beginTime = block.timestamp;
+        nftNameMap[fullNFT]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
+        nftNameMap[fullNFT]._forSale = false;
+        nftNameMap[fullNFT]._salePrice = 0;
+        nftNameMap[fullNFT]._tokenURI = tokenURI_;
+        nftNameMap[fullNFT]._nftName = newNFT;
+        nftNameMap[fullNFT]._nameXTExt = _nameXTExt[nameXTExtId_];
         
         //use the map of address with tokenIds for a better performance when get the list of tokenIds by an address
         nftUserTokenMap[recipient]._tokenIds.push(newItemId);
         nftExtTokenMap[_nameXTExt[nameXTExtId_]]._tokenIds.push(newItemId);
-        nftIdNameMap[newItemId] = newNFT;
+        nftIdNameMap[newItemId] = fullNFT;
         
         //Emit an event
-        emit ImportNewNFT(recipient, newNFT);
+        emit ImportNewNFT(recipient, fullNFT);
     
         return newItemId;
     }
