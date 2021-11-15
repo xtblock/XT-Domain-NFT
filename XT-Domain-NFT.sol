@@ -277,7 +277,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
 
         uint256 newItemId = _tokenIds.current();
         
-        _mint(msg.sender, newItemId);
+        _mint(address(this), newItemId);
+        //_mint(msg.sender, newItemId);
 
         nftNameMap[fullNFT]._ownerAddress = msg.sender;//recipient;
         nftNameMap[fullNFT]._tokenId = newItemId;
@@ -373,7 +374,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
 
         uint256 newItemId = _tokenIds.current();
         
-        _mint(recipient, newItemId);
+        _mint(address(this), newItemId);
+        //_mint(recipient, newItemId);
 
         nftNameMap[fullNFT]._ownerAddress = recipient;
         nftNameMap[fullNFT]._tokenId = newItemId;
@@ -448,13 +450,14 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         require(paymentToken(2).balanceOf(msg.sender) >= nftNameMap[NFTName_]._salePrice, "Can't pay nft fee!");
         
         //Need to approve this contract before this transaction
-        safeTransferFrom( nftNameMap[NFTName_]._ownerAddress, address(this), nftNameMap[NFTName_]._tokenId);
+        //safeTransferFrom( nftNameMap[NFTName_]._ownerAddress, address(this), nftNameMap[NFTName_]._tokenId);
         paymentToken(2).safeTransferFrom(msg.sender, address(this), nftNameMap[NFTName_]._salePrice);
-        
-        safeTransferFrom( address(this), msg.sender, nftNameMap[NFTName_]._tokenId);
         
         paymentToken(2).safeTransferFrom(address(this), nftNameMap[NFTName_]._ownerAddress, (100 - _marketplaceFee ) * nftNameMap[NFTName_]._salePrice / 100);
         //Need to approve this contract before this transaction
+        //safeTransferFrom( address(this), msg.sender, nftNameMap[NFTName_]._tokenId);
+        
+        //safeTransferFrom( nftNameMap[NFTName_]._ownerAddress, msg.sender, nftNameMap[NFTName_]._tokenId);
 
         uint arrayLength = nftUserTokenMap[nftNameMap[NFTName_]._ownerAddress]._tokenIds.length;
         
@@ -491,10 +494,10 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     
     function setNFTSalePrice(string memory NFTName_, uint256 salePrice_) external {
         
-        address owner = nftNameMap[NFTName_]._ownerAddress;
+        address nftOwner = nftNameMap[NFTName_]._ownerAddress;
         
         require(
-            owner == msg.sender,
+            nftOwner == msg.sender,
             "Ownable: caller is not the current owner"
         );
         
