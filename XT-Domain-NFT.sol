@@ -556,6 +556,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         require(bytes(tokenURI).length > 0, "tokenURI: Can't be blank!");
         
         _setTokenURI(nftNameMap[NFTName_]._tokenId, tokenURI);
+        nftNameMap[NFTName_]._tokenURI = tokenURI;
+        
         emit SetNFTURI(msg.sender, NFTName_, tokenURI);
     }
 }
