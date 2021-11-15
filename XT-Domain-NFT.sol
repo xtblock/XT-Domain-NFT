@@ -261,10 +261,13 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         require(nameXTExtId_ < _nameXTExt.length , "Out of array.");
         
+        
         paymentToken(1).safeTransferFrom(msg.sender, address(this), numOfYear * getMintPrice());
 
         string memory fullNFT = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
-         
+        
+        require(nftNameMap[fullNFT]._tokenId == 0, "The NFT Name has been taken!");
+        
         _tokenIds.increment();
 
         uint256 newItemId = _tokenIds.current();
@@ -358,6 +361,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         paymentToken(1).safeTransferFrom(msg.sender, beneficiary(), numOfYear * getMintPrice());
         
         string memory fullNFT = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, nameXTExt)) : "";
+        
+        require(nftNameMap[fullNFT]._tokenId == 0, "The NFT Name has been taken!");
         
         _tokenIds.increment();
 
