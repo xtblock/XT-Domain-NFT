@@ -303,10 +303,10 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     //Declare an Event
     event ExtendNFTSubscription(
         address indexed caller,
-        string indexed newNFT
+        string indexed NFTName_
     );
     
-    function extendNFTSubscription(string memory newNFT, uint numOfYear)
+    function extendNFTSubscription(string memory NFTName_, uint numOfYear)
         public 
     {
         require(
@@ -318,7 +318,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         require(paymentToken(1).balanceOf(msg.sender) >= numOfYear * getMintPrice(), "Can't pay nft fee!");
         
-        require(bytes(newNFT).length > 0, "Can't be blank!");
+        require(bytes(NFTName_).length > 0, "Can't be blank!");
         
         require(numOfYear >= 1 && numOfYear <= 10, "Can't be less than 1 year or greater than 10 years!");
         
@@ -328,10 +328,10 @@ contract XTNFT is ERC721URIStorage,  Ownable {
 
         //string memory fullNFT = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
          
-        nftNameMap[newNFT]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
+        nftNameMap[NFTName_]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
         
         //Emit an event
-        emit ExtendNFTSubscription(msg.sender, newNFT);
+        emit ExtendNFTSubscription(msg.sender, NFTName_);
     }
     
     //Declare an Event
@@ -401,11 +401,11 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     //Declare an Event
     event ExtendImportedNFTSubscription(
         address indexed caller,
-        string indexed newNFT,
+        string indexed NFTName_,
         uint indexed numOfYear
     );
     
-    function extendImportedNFTSubscription(string memory newNFT, uint numOfYear)
+    function extendImportedNFTSubscription(string memory NFTName_, uint numOfYear)
         public onlyOwner 
     {
         require(
@@ -417,16 +417,23 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         require(paymentToken(1).balanceOf(msg.sender) >= numOfYear * getMintPrice(), "Can't pay nft fee!");
         
-        require(bytes(newNFT).length > 0, "newNFT: Can't be blank!");
+        require(bytes(NFTName_).length > 0, "NFTName_: Can't be blank!");
         
         require(numOfYear >= 1 && numOfYear <= 10, "Can't be less than 1 year or greater than 10 years!");
         
         paymentToken(1).safeTransferFrom(msg.sender, beneficiary(), numOfYear * getMintPrice());
 
-        nftNameMap[newNFT]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
+        //string memory fullNFT = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
+        if(nftNameMap[NFTName_]._expiryTime < block.timestamp){
+            nftNameMap[NFTName_]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
+        }else{
+            nftNameMap[NFTName_]._expiryTime = nftNameMap[NFTName_]._expiryTime + numOfYear * 365 * 86400;
+        }
+         
+        //nftNameMap[NFTName_]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
         
         //Emit an event
-        emit ExtendImportedNFTSubscription(msg.sender, newNFT, numOfYear);
+        emit ExtendImportedNFTSubscription(msg.sender, NFTName_, numOfYear);
     }
     
     //Declare an Event
