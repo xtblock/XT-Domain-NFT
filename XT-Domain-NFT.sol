@@ -448,12 +448,13 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         require(paymentToken(2).balanceOf(msg.sender) >= nftNameMap[NFTName_]._salePrice, "Can't pay nft fee!");
         
         //Need to approve this contract before this transaction
-        safeTransferFrom( nftNameMap[NFTName_]._ownerAddress, address(this), nftNameMap[NFTName_]._tokenId);
+        //safeTransferFrom( nftNameMap[NFTName_]._ownerAddress, address(this), nftNameMap[NFTName_]._tokenId);
         paymentToken(2).safeTransferFrom(msg.sender, address(this), nftNameMap[NFTName_]._salePrice);
         
         paymentToken(2).safeTransferFrom(address(this), nftNameMap[NFTName_]._ownerAddress, (100 - _marketplaceFee ) * nftNameMap[NFTName_]._salePrice / 100);
         //Need to approve this contract before this transaction
-        safeTransferFrom( address(this), msg.sender, nftNameMap[NFTName_]._tokenId);
+        //safeTransferFrom( address(this), msg.sender, nftNameMap[NFTName_]._tokenId);
+        safeTransferFrom( nftNameMap[NFTName_]._ownerAddress, msg.sender, nftNameMap[NFTName_]._tokenId);
 
         uint arrayLength = nftUserTokenMap[nftNameMap[NFTName_]._ownerAddress]._tokenIds.length;
         
