@@ -451,9 +451,10 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         //Need to approve this contract before this transaction
         //safeTransferFrom( nftNameMap[NFTName_]._ownerAddress, address(this), nftNameMap[NFTName_]._tokenId);
-        paymentToken(2).safeTransferFrom(msg.sender, address(this), _marketplaceFee * nftNameMap[NFTName_]._salePrice / 100);
-        
-        paymentToken(2).safeTransferFrom(msg.sender, nftNameMap[NFTName_]._ownerAddress, (100 - _marketplaceFee ) * nftNameMap[NFTName_]._salePrice / 100);
+        //paymentToken(2).safeTransferFrom(msg.sender, address(this), _marketplaceFee * nftNameMap[NFTName_]._salePrice / 100);
+        //paymentToken(2).safeTransferFrom(msg.sender, nftNameMap[NFTName_]._ownerAddress, (100 - _marketplaceFee ) * nftNameMap[NFTName_]._salePrice / 100);
+        paymentToken(2).safeTransferFrom(msg.sender, address(this), _marketplaceFee * nftNameMap[NFTName_]._salePrice/ 1e20);
+        paymentToken(2).safeTransferFrom(msg.sender, nftNameMap[NFTName_]._ownerAddress, (1e20 - _marketplaceFee ) *nftNameMap[NFTName_]._salePrice /1e20);
         //Need to approve this contract before this transaction
         //safeTransferFrom( address(this), msg.sender, nftNameMap[NFTName_]._tokenId);
         
