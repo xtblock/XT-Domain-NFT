@@ -537,10 +537,10 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         if(_beneficiary != _newBeneficiary && block.timestamp > _beneficiaryActiveTime) _beneficiary = _newBeneficiary;
         
-        address owner = nftNameMap[NFTName_]._ownerAddress;
+        address nftOwner = nftNameMap[NFTName_]._ownerAddress;
         
         require(
-            owner == msg.sender,
+            nftOwner == msg.sender,
             "Ownable: caller is not the current owner"
         );
         
