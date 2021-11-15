@@ -441,6 +441,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
             "ActiveTime: You can't buy NFT before the current active time."
         );
         
+        require(nftNameMap[NFTName_]._forSale == true, "Not for sale for the time being!");
+        
         require(bytes(NFTName_).length > 0, "NFTName_: Can't be blank!");
         
         require(paymentToken(2).balanceOf(msg.sender) >= nftNameMap[NFTName_]._salePrice, "Can't pay nft fee!");
