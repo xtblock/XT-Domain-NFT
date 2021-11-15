@@ -174,8 +174,13 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         return _tokenForMarketPlace;
     }
     
-    function setTokenForPayment(IERC20 token_) external onlyOwner {
+    function setTokenForRegisterNFTPayment(IERC20 token_) external onlyOwner {
         _tokenForRegisterNFT = token_;
+        emit SetTokenForPayment(msg.sender, token_);
+    }
+    
+    function setTokenForMarketPlacePayment(IERC20 token_) external onlyOwner {
+        _tokenForMarketPlace = token_;
         emit SetTokenForPayment(msg.sender, token_);
     }
     
