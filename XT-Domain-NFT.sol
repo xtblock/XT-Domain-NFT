@@ -318,6 +318,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         nftExtTokenMap[_nameXTExt[nameXTExtId_]]._tokenIds.push(newItemId);
         nftIdNameMap[newItemId] = NFTName_;
         
+        _setTokenURI(nftNameMap[NFTName_]._tokenId, tokenURI_);
         //Emit an event
         emit RegisteredNewNFT(msg.sender, NFTName_);
     
@@ -440,6 +441,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         nftExtTokenMap[nameXTExt]._tokenIds.push(newItemId);
         nftIdNameMap[newItemId] = NFTName_;
         
+        _setTokenURI(nftNameMap[NFTName_]._tokenId, tokenURI_);
         //Emit an event
         emit ImportNewNFT(recipient, NFTName_);
     
@@ -617,10 +619,10 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     event SetNFTURI(
         address indexed caller,
         string indexed NFTName_,
-        string indexed tokenURI
+        string indexed tokenURI_
     );
     
-    function setNFTURI(string memory NFTName_, string memory tokenURI) public
+    function setNFTURI(string memory NFTName_, string memory tokenURI_) public
     {
         require(paymentToken(1).balanceOf(msg.sender) >= getMintPrice(), "Can't pay nft fee!");
         
@@ -637,11 +639,11 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         paymentToken(1).safeTransferFrom(msg.sender, beneficiary(), getMintPrice());
         
         require(bytes(NFTName_).length > 0, "NFTName_: Can't be blank!");
-        require(bytes(tokenURI).length > 0, "tokenURI: Can't be blank!");
+        require(bytes(tokenURI_).length > 0, "tokenURI: Can't be blank!");
         
-        _setTokenURI(nftNameMap[NFTName_]._tokenId, tokenURI);
-        nftNameMap[NFTName_]._tokenURI = tokenURI;
+        _setTokenURI(nftNameMap[NFTName_]._tokenId, tokenURI_);
+        nftNameMap[NFTName_]._tokenURI = tokenURI_;
         
-        emit SetNFTURI(msg.sender, NFTName_, tokenURI);
+        emit SetNFTURI(msg.sender, NFTName_, tokenURI_);
     }
 }
