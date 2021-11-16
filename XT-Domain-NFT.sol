@@ -13,8 +13,18 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
     
+    struct NFTSaleStruct {
+        address _ownerAddress;
+        address _payerAddress;
+        uint256 _paidTime;
+        uint256 _salePrice;
+        address _tokenForPayment;
+        uint256 _qtyYear;
+    }
+    
     struct NFTRegisterStruct {
         address _ownerAddress;
+        address _payerAddress;
         uint256 _tokenId;
         uint256 _beginTime;
         uint256 _expiryTime;
@@ -23,6 +33,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         string _tokenURI;
         string _nftName;
         string _nameXTExt;
+        uint256 _totalPaidForSubscription;
+        NFTSaleStruct[] _NFTSaleHistory;
     }
     
     mapping(string => NFTRegisterStruct) private nftNameMap;
@@ -269,9 +281,9 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         paymentToken(1).safeTransferFrom(msg.sender, address(this), numOfYear * getMintPrice());
 
-        string memory fullNFT = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
+        string memory NFTName_ = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
         
-        require(nftNameMap[fullNFT]._tokenId == 0, "The NFT Name has been taken!");
+        require(nftNameMap[NFTName_]._tokenId == 0, "The NFT Name has been taken!");
         
         _tokenIds.increment();
 
@@ -280,22 +292,33 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         _mint(address(this), newItemId);
         //_mint(msg.sender, newItemId);
 
-        nftNameMap[fullNFT]._ownerAddress = msg.sender;//recipient;
-        nftNameMap[fullNFT]._tokenId = newItemId;
-        nftNameMap[fullNFT]._beginTime = block.timestamp;
-        nftNameMap[fullNFT]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
-        nftNameMap[fullNFT]._forSale = false;
-        nftNameMap[fullNFT]._salePrice = 0;
-        nftNameMap[fullNFT]._tokenURI = tokenURI_;
-        nftNameMap[fullNFT]._nftName = newNFT;
-        nftNameMap[fullNFT]._nameXTExt = _nameXTExt[nameXTExtId_];
+        nftNameMap[NFTName_]._ownerAddress = msg.sender;//recipient;
+        nftNameMap[NFTName_]._payerAddress = msg.sender;
+        nftNameMap[NFTName_]._tokenId = newItemId;
+        nftNameMap[NFTName_]._beginTime = block.timestamp;
+        nftNameMap[NFTName_]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
+        nftNameMap[NFTName_]._forSale = false;
+        nftNameMap[NFTName_]._salePrice = 0;
+        nftNameMap[NFTName_]._tokenURI = tokenURI_;
+        nftNameMap[NFTName_]._nftName = newNFT;
+        nftNameMap[NFTName_]._nameXTExt = _nameXTExt[nameXTExtId_];
+        nftNameMap[NFTName_]._totalPaidForSubscription += numOfYear * getMintPrice();
+        
+        nftNameMap[NFTName_]._NFTSaleHistory.push(NFTSaleStruct(
+            nftNameMap[NFTName_]._ownerAddress,
+            msg.sender,
+            block.timestamp,
+            getMintPrice(),
+            address(paymentToken(1)),
+            numOfYear
+        ));
         //use the map of address with tokenIds for a better performance when get the list of tokenIds by an address
         nftUserTokenMap[msg.sender]._tokenIds.push(newItemId);
         nftExtTokenMap[_nameXTExt[nameXTExtId_]]._tokenIds.push(newItemId);
-        nftIdNameMap[newItemId] = fullNFT;
+        nftIdNameMap[newItemId] = NFTName_;
         
         //Emit an event
-        emit RegisteredNewNFT(msg.sender, fullNFT);
+        emit RegisteredNewNFT(msg.sender, NFTName_);
     
         return newItemId;
     }
@@ -326,10 +349,24 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         paymentToken(1).safeTransferFrom(msg.sender, beneficiary(), numOfYear * getMintPrice());
 
-        //string memory fullNFT = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
-         
-        nftNameMap[NFTName_]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
+        //string memory NFTName_ = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
+        if(nftNameMap[NFTName_]._expiryTime < block.timestamp){
+            nftNameMap[NFTName_]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
+        }else{
+            nftNameMap[NFTName_]._expiryTime = nftNameMap[NFTName_]._expiryTime + numOfYear * 365 * 86400;
+        }
         
+        //nftNameMap[NFTName_]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
+        nftNameMap[NFTName_]._totalPaidForSubscription += numOfYear * getMintPrice();
+        
+        nftNameMap[NFTName_]._NFTSaleHistory.push(NFTSaleStruct(
+            nftNameMap[NFTName_]._ownerAddress,
+            msg.sender,
+            block.timestamp,
+            getMintPrice(),
+            address(paymentToken(1)),
+            numOfYear
+        ));
         //Emit an event
         emit ExtendNFTSubscription(msg.sender, NFTName_);
     }
@@ -366,9 +403,9 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         paymentToken(1).safeTransferFrom(msg.sender, beneficiary(), numOfYear * getMintPrice());
         
-        string memory fullNFT = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, nameXTExt)) : "";
+        string memory NFTName_ = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, nameXTExt)) : "";
         
-        require(nftNameMap[fullNFT]._tokenId == 0, "The NFT Name has been taken!");
+        require(nftNameMap[NFTName_]._tokenId == 0, "The NFT Name has been taken!");
         
         _tokenIds.increment();
 
@@ -377,23 +414,33 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         _mint(address(this), newItemId);
         //_mint(recipient, newItemId);
 
-        nftNameMap[fullNFT]._ownerAddress = recipient;
-        nftNameMap[fullNFT]._tokenId = newItemId;
-        nftNameMap[fullNFT]._beginTime = block.timestamp;
-        nftNameMap[fullNFT]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
-        nftNameMap[fullNFT]._forSale = false;
-        nftNameMap[fullNFT]._salePrice = 0;
-        nftNameMap[fullNFT]._tokenURI = tokenURI_;
-        nftNameMap[fullNFT]._nftName = newNFT;
-        nftNameMap[fullNFT]._nameXTExt = nameXTExt;
+        nftNameMap[NFTName_]._ownerAddress = recipient;
+        nftNameMap[NFTName_]._payerAddress = msg.sender;
+        nftNameMap[NFTName_]._tokenId = newItemId;
+        nftNameMap[NFTName_]._beginTime = block.timestamp;
+        nftNameMap[NFTName_]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
+        nftNameMap[NFTName_]._forSale = false;
+        nftNameMap[NFTName_]._salePrice = 0;
+        nftNameMap[NFTName_]._tokenURI = tokenURI_;
+        nftNameMap[NFTName_]._nftName = newNFT;
+        nftNameMap[NFTName_]._nameXTExt = nameXTExt;
+        nftNameMap[NFTName_]._totalPaidForSubscription += numOfYear * getMintPrice();
         
+        nftNameMap[NFTName_]._NFTSaleHistory.push(NFTSaleStruct(
+            nftNameMap[NFTName_]._ownerAddress,
+            msg.sender,
+            block.timestamp,
+            getMintPrice(),
+            address(paymentToken(1)),
+            numOfYear
+        ));
         //use the map of address with tokenIds for a better performance when get the list of tokenIds by an address
         nftUserTokenMap[recipient]._tokenIds.push(newItemId);
         nftExtTokenMap[nameXTExt]._tokenIds.push(newItemId);
-        nftIdNameMap[newItemId] = fullNFT;
+        nftIdNameMap[newItemId] = NFTName_;
         
         //Emit an event
-        emit ImportNewNFT(recipient, fullNFT);
+        emit ImportNewNFT(recipient, NFTName_);
     
         return newItemId;
     }
@@ -423,15 +470,24 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         paymentToken(1).safeTransferFrom(msg.sender, beneficiary(), numOfYear * getMintPrice());
 
-        //string memory fullNFT = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
+        //string memory NFTName_ = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
         if(nftNameMap[NFTName_]._expiryTime < block.timestamp){
             nftNameMap[NFTName_]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
         }else{
             nftNameMap[NFTName_]._expiryTime = nftNameMap[NFTName_]._expiryTime + numOfYear * 365 * 86400;
         }
-         
+        
+        nftNameMap[NFTName_]._totalPaidForSubscription += numOfYear * getMintPrice(); 
         //nftNameMap[NFTName_]._expiryTime = block.timestamp + numOfYear * 365 * 86400;
         
+        nftNameMap[NFTName_]._NFTSaleHistory.push(NFTSaleStruct(
+            nftNameMap[NFTName_]._ownerAddress,
+            msg.sender,
+            block.timestamp,
+            getMintPrice(),
+            address(paymentToken(1)),
+            numOfYear
+        ));
         //Emit an event
         emit ExtendImportedNFTSubscription(msg.sender, NFTName_, numOfYear);
     }
@@ -486,9 +542,17 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         nftNameMap[NFTName_]._forSale = false;
         nftNameMap[NFTName_]._salePrice = 0;
         
+        nftNameMap[NFTName_]._NFTSaleHistory.push(NFTSaleStruct(
+            nftNameMap[NFTName_]._ownerAddress,
+            msg.sender,
+            block.timestamp,
+            nftNameMap[NFTName_]._salePrice,
+            address(paymentToken(2)),
+            0
+        ));
+        
         //use the map of address with tokenIds for a better performance when get the list of tokenIds by an address
         nftUserTokenMap[msg.sender]._tokenIds.push(nftNameMap[NFTName_]._tokenId);
-        
         //Emit an event
         emit BuyNFTFromMarketPlace(msg.sender, NFTName_);
     }
