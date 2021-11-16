@@ -224,7 +224,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         uint256 currentBalance = paymentToken(paymentId).balanceOf(address(this));
         
-        paymentToken(paymentId).safeTransferFrom(address(this), beneficiary(), currentBalance);
+        // paymentToken(paymentId).safeTransferFrom(address(this), beneficiary(), currentBalance);
+        paymentToken(paymentId).safeTransfer(beneficiary(), currentBalance);
         emit WithdrawTokenForPayment(address(this), beneficiary(), currentBalance);
     }
     /**
