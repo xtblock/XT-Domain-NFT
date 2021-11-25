@@ -584,15 +584,27 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     }
     
     //get tokenIds by address
-    function getTokenIdsByAddress(address walletAddress) external view returns (uint256[] memory tokenIds)
+    function getTokenIdsByAddress(address walletAddress, uint256 start, uint256 end) external view returns (uint256[] memory tokenIds)
     {
-        return  nftUserTokenMap[walletAddress]._tokenIds;
+        require(nftUserTokenMap[walletAddress]._tokenIds.length >= end, "Exceeded array length");
+        uint256[] memory tokenIdsInterim;
+        uint256 arrayLen = end - start;
+        for(uint256 i = 0; i < arrayLen; i++){
+            tokenIdsInterim[i]= nftUserTokenMap[walletAddress]._tokenIds[i + start];
+        }
+        return  tokenIdsInterim;//nftUserTokenMap[walletAddress]._tokenIds;
     }
     
     //get tokenIds by ext name
-    function getTokenIdsByExt(string memory extName_) external view returns (uint256[] memory tokenIds)
+    function getTokenIdsByExt(string memory extName_, uint256 start, uint256 end) external view returns (uint256[] memory tokenIds)
     {
-        return  nftExtTokenMap[extName_]._tokenIds;
+        require(nftExtTokenMap[extName_]._tokenIds.length >= end, "Exceeded array length");
+        uint256[] memory tokenIdsInterim;
+        uint256 arrayLen = end - start;
+        for(uint256 i = 0; i < arrayLen; i++){
+            tokenIdsInterim[i]= nftExtTokenMap[extName_]._tokenIds[i + start];
+        }
+        return  tokenIdsInterim;//nftExtTokenMap[extName_]._tokenIds;
     }
     
     function getNFTURI(string memory NFTName) external view returns (string memory)
