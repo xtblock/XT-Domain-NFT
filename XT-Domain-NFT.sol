@@ -72,8 +72,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     string[] private _nameXTExt= [".alt", ".bsc", ".int", ".xt"];
     //string[] private _nameIANAExt= [".com"];
     
-    uint256 private mintPrice = 30000000000000000000;//30 * 10^18 tokens
-    uint256 private _marketplaceFee = 2000000000000000000; // 2 = 2 * 10^18 %
+    uint256 private mintPrice = 30e18;//30 * 10^18 tokens
+    uint256 private _marketplaceFee = 2e18; // 2 = 2 * 10^18 %
     
     constructor() ERC721("XT-Domain-NFT", "XT-Domain-NFT") {
         _activeTime = block.timestamp + 24 hours;
@@ -145,7 +145,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         emit AddXTExt(msg.sender, nameExt_);
     }
     
-    function getNameExt()  public view returns (string[] memory) {
+    function getNameExt()  external view returns (string[] memory) {
         return _nameXTExt;
     }
     
@@ -170,7 +170,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         return mintPrice;
     }
     
-    function getCurrentTokenId() public view virtual returns (uint256) {
+    function getCurrentTokenId() external view virtual returns (uint256) {
         return  _tokenIds.current();
     }
     /**
@@ -196,7 +196,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         emit SetTokenForPayment(msg.sender, token_);
     }
     
-    function balanceTokenForPayment(uint paymentId) public view virtual returns (uint256) {
+    function balanceTokenForPayment(uint paymentId) external view virtual returns (uint256) {
         require(
             paymentId <= 2,
             "Unknown payment token"
@@ -261,7 +261,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     );
     
     function registerNFT(string memory newNFT, uint nameXTExtId_, string memory tokenURI_, uint numOfYear)
-        public 
+        external 
         returns (uint256)
     {
         require(
@@ -282,8 +282,9 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         paymentToken(1).safeTransferFrom(msg.sender, address(this), numOfYear * getMintPrice());
 
-        string memory NFTName_ = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
-        
+        //string memory NFTName_ = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_])) : "";
+        string memory NFTName_ = string(abi.encodePacked(newNFT, _nameXTExt[nameXTExtId_]));
+
         require(nftNameMap[NFTName_]._tokenId == 0, "The NFT Name has been taken!");
         
         _tokenIds.increment();
@@ -332,7 +333,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     );
     
     function extendNFTSubscription(string memory NFTName_, uint numOfYear)
-        public 
+        external 
     {
         require(
             block.timestamp > getActiveTime(),
@@ -380,7 +381,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     );
     
     function importNFT(address recipient, string memory newNFT, string memory nameXTExt, string memory tokenURI_, uint numOfYear)
-        public onlyOwner 
+        external onlyOwner 
         returns (uint256)
     {
         require(
@@ -405,7 +406,8 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         paymentToken(1).safeTransferFrom(msg.sender, beneficiary(), numOfYear * getMintPrice());
         
-        string memory NFTName_ = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, nameXTExt)) : "";
+        //string memory NFTName_ = bytes(newNFT).length > 0 ? string(abi.encodePacked(newNFT, nameXTExt)) : "";
+        string memory NFTName_ = string(abi.encodePacked(newNFT, nameXTExt));
         
         require(nftNameMap[NFTName_]._tokenId == 0, "The NFT Name has been taken!");
         
@@ -456,7 +458,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     );
     
     function extendImportedNFTSubscription(string memory NFTName_, uint numOfYear)
-        public onlyOwner 
+        external onlyOwner 
     {
         require(
             block.timestamp > getActiveTime(),
@@ -502,14 +504,14 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     );
     
     function buyNFTFromMarketPlace(string memory NFTName_)
-        public
+        external
     {
         require(
             block.timestamp > getActiveTime(),
             "ActiveTime: You can't buy NFT before the current active time."
         );
         
-        require(nftNameMap[NFTName_]._forSale == true, "Not for sale for the time being!");
+        require(nftNameMap[NFTName_]._forSale, "Not for sale for the time being!");
         
         require(bytes(NFTName_).length > 0, "NFTName_: Can't be blank!");
         
@@ -582,35 +584,35 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     }
     
     //get tokenIds by address
-    function getTokenIdsByAddress(address walletAddress) public view returns (uint256[] memory tokenIds)
+    function getTokenIdsByAddress(address walletAddress) external view returns (uint256[] memory tokenIds)
     {
         return  nftUserTokenMap[walletAddress]._tokenIds;
     }
     
     //get tokenIds by ext name
-    function getTokenIdsByExt(string memory extName_) public view returns (uint256[] memory tokenIds)
+    function getTokenIdsByExt(string memory extName_) external view returns (uint256[] memory tokenIds)
     {
         return  nftExtTokenMap[extName_]._tokenIds;
     }
     
-    function getNFTURI(string memory NFTName) public view returns (string memory)
+    function getNFTURI(string memory NFTName) external view returns (string memory)
     {
         require(nftNameMap[NFTName]._expiryTime > block.timestamp, "This NFT has been expired. Owner need to extend its subscription time.");
         
         return tokenURI(nftNameMap[NFTName]._tokenId);
     }
     
-    function getNFTDataByName(string memory NFTName) public view returns (NFTRegisterStruct memory)
+    function getNFTDataByName(string memory NFTName) external view returns (NFTRegisterStruct memory)
     {
         return nftNameMap[NFTName];
     }
     
-    function getNFTDataById(uint256 tokenId_) public view returns (NFTRegisterStruct memory)
+    function getNFTDataById(uint256 tokenId_) external view returns (NFTRegisterStruct memory)
     {
         return nftNameMap[nftIdNameMap[tokenId_]];
     }
     
-    function getNFTNameById(uint256 tokenId_) public view returns (string memory)
+    function getNFTNameById(uint256 tokenId_) external view returns (string memory)
     {
         return nftIdNameMap[tokenId_];
     }
@@ -622,7 +624,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         string indexed tokenURI_
     );
     
-    function setNFTURI(string memory NFTName_, string memory tokenURI_) public
+    function setNFTURI(string memory NFTName_, string memory tokenURI_) external
     {
         require(paymentToken(1).balanceOf(msg.sender) >= getMintPrice(), "Can't pay nft fee!");
         
