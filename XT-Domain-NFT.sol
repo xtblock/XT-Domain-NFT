@@ -586,6 +586,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     //get tokenIds by address
     function getTokenIdsByAddress(address walletAddress, uint256 start, uint256 end) external view returns (uint256[] memory tokenIds)
     {
+        require(start < end, "Invalid counters");
         require(nftUserTokenMap[walletAddress]._tokenIds.length >= end, "Exceeded array length");
         uint256[] memory tokenIdsInterim;
         uint256 arrayLen = end - start;
@@ -598,6 +599,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     //get tokenIds by ext name
     function getTokenIdsByExt(string memory extName_, uint256 start, uint256 end) external view returns (uint256[] memory tokenIds)
     {
+        require(start < end, "Invalid counters");
         require(nftExtTokenMap[extName_]._tokenIds.length >= end, "Exceeded array length");
         uint256[] memory tokenIdsInterim;
         uint256 arrayLen = end - start;
