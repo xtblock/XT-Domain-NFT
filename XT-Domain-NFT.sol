@@ -151,6 +151,33 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         _nameXTExt.push(nameExt_);
         emit AddXTExt(msg.sender, nameExt_);
     }
+
+    //Declare an Event
+    event RemoveXTExt(
+        address indexed caller,
+        string indexed nameExt_
+    );
+
+    function removeXTExt( string memory nameExt_) external onlyOwner {
+        
+        uint loopCnt = _nameXTExt.length;
+        
+        for(uint i=0; i< _nameXTExt.length; i++){
+            if (keccak256(abi.encodePacked(nameExt_)) == keccak256(abi.encodePacked(_nameXTExt[i]))){
+                loopCnt = i;
+                break;
+            }
+        }
+        
+        require(
+            loopCnt < _nameXTExt.length,
+            "The name extension is not existed."
+        );
+
+        _nameXTExt[loopCnt] = _nameXTExt[_nameXTExt.length - 1];
+        _nameXTExt.pop();
+        emit RemoveXTExt(msg.sender, nameExt_);
+    }
     
     function getNameExt()  external view returns (string[] memory) {
         return _nameXTExt;
@@ -607,7 +634,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     function getTokenIdsByAddress(address walletAddress, uint256 start, uint256 end) external view returns (uint256[] memory tokenIds)
     {
         require(start < end, "Invalid counters");
-        require(nftUserTokenMap[walletAddress]._tokenIds.length >= end, "Exceeded array length");
+        require(nftUserTokenMap[walletAddress]._tokenIds.length > 0 && nftUserTokenMap[walletAddress]._tokenIds.length >= end, "Exceeded array length");
         uint256[] memory tokenIdsInterim;
         uint256 arrayLen = end - start;
         for(uint256 i = 0; i < arrayLen; i++){
@@ -620,7 +647,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     function getTokenIdsByExt(string memory extName_, uint256 start, uint256 end) external view returns (uint256[] memory tokenIds)
     {
         require(start < end, "Invalid counters");
-        require(nftExtTokenMap[extName_]._tokenIds.length >= end, "Exceeded array length");
+        require(nftExtTokenMap[extName_]._tokenIds.length > 0 && nftExtTokenMap[extName_]._tokenIds.length >= end, "Exceeded array length");
         uint256[] memory tokenIdsInterim;
         uint256 arrayLen = end - start;
         for(uint256 i = 0; i < arrayLen; i++){
