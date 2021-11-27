@@ -635,10 +635,11 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     {
         require(start <= end, "Invalid counters");
         require(nftUserTokenMap[walletAddress]._tokenIds.length > 0 && nftUserTokenMap[walletAddress]._tokenIds.length > end, "Exceeded array length");
-        uint256[] memory tokenIdsInterim;
+        uint256[] memory tokenIdsInterim =  new uint256[](100);
         uint256 arrayLen = end - start + 1;
         for(uint256 i = 0; i < arrayLen; i++){
-            tokenIdsInterim[i]= nftUserTokenMap[walletAddress]._tokenIds[i + start];
+            uint256 j = i + start;
+            tokenIdsInterim[i]= nftUserTokenMap[walletAddress]._tokenIds[j];
         }
         return  tokenIdsInterim;//nftUserTokenMap[walletAddress]._tokenIds;
     }
@@ -653,10 +654,11 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     {
         require(start <= end, "Invalid counters");
         require(nftExtTokenMap[extName_]._tokenIds.length > 0 && nftExtTokenMap[extName_]._tokenIds.length > end, "Exceeded array length");
-        uint256[] memory tokenIdsInterim;
+        uint256[] memory tokenIdsInterim =  new uint256[](100);
         uint256 arrayLen = end - start + 1;
         for(uint256 i = 0; i < arrayLen; i++){
-            tokenIdsInterim[i]= nftExtTokenMap[extName_]._tokenIds[i + start];
+            uint256 j = i + start;
+            tokenIdsInterim[i]= nftExtTokenMap[extName_]._tokenIds[j];
         }
         return  tokenIdsInterim;//nftExtTokenMap[extName_]._tokenIds;
     }
