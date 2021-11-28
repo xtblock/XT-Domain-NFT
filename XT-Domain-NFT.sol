@@ -638,8 +638,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         uint256[] memory tokenIdsInterim =  new uint256[](100);
         uint256 arrayLen = end - start + 1;
         for(uint256 i = 0; i < arrayLen; i++){
-            uint256 j = i + start;
-            tokenIdsInterim[i]= nftUserTokenMap[walletAddress]._tokenIds[j];
+            tokenIdsInterim[i]= nftUserTokenMap[walletAddress]._tokenIds[i + start];
         }
         return  tokenIdsInterim;//nftUserTokenMap[walletAddress]._tokenIds;
     }
@@ -657,8 +656,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         uint256[] memory tokenIdsInterim =  new uint256[](100);
         uint256 arrayLen = end - start + 1;
         for(uint256 i = 0; i < arrayLen; i++){
-            uint256 j = i + start;
-            tokenIdsInterim[i]= nftExtTokenMap[extName_]._tokenIds[j];
+            tokenIdsInterim[i]= nftExtTokenMap[extName_]._tokenIds[i + start];
         }
         return  tokenIdsInterim;//nftExtTokenMap[extName_]._tokenIds;
     }
