@@ -640,6 +640,13 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     function transferNFT(string memory NFTName_, address recipient)
         external
     {
+        address nftOwner = nftNameMap[NFTName_]._ownerAddress;
+        
+        require(
+            nftOwner == msg.sender,
+            "not the owner"
+        );
+        
         require(bytes(NFTName_).length > 0, "NFTName_: blank");
         require(
             recipient != address(0),
