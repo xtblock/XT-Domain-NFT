@@ -76,7 +76,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     
     address private _worker;
     
-    string[] private _nameXTExt= [".ada", ".algo", ".atom", ".avax", ".bch", ".bnb", ".bsv", ".btc", ".cake", ".chz", ".dash", ".dcr", ".doge", ".dot", ".egld", ".enj", ".eos", ".etc", ".eth", ".fil", ".flow", ".ftm", ".hbar", ".hnt", ".hot", ".icp", ".int", "iotx", ".kda", ".klay", ".ksm", ".link", ".luna", ".matic", ".mina", ".miota", ".mkr", ".near", ".neo", ".omg", ".one", ".qnt", ".qtum", ".rune", ".sc", ".sol", ".stx", ".theta", ".trx", ".uni", ".vet", ".waves", ".xdc", ".xem", ".xlm", ".xrp", ".xt", ".xtz"];
+    string[] private _nameXTExt= [".ada", ".algo", ".atom", ".avax", ".bch", ".bnb", ".bsv", ".btc", ".cake", ".chz", ".dash", ".dcr", ".doge", ".dot", ".egld", ".enj", ".eos", ".etc", ".eth", ".fil", ".flow", ".ftm", ".hbar", ".hnt", ".hot", ".icp", ".int", "iotx", ".kda", ".klay", ".ksm", ".link", ".luna", ".matic", ".mina", ".miota", ".mkr", ".near", ".neo", ".omg", ".one", ".qnt", ".qtum", ".rune", ".sc", ".sol", ".stx", ".theta", ".trx", ".uni", ".vet", ".waves", ".xdc", ".xem", ".xlm", ".xrp", ".xt"];
     //string[] private _nameIANAExt= [".com"];
     
     uint256 private mintPrice = 30e18;//30 * 10^18 tokens
@@ -96,11 +96,12 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     }
     
     //Declare an Event
+    /*
     event UpdateWorker(
         address indexed caller,
         address indexed worker
     );
-    
+    */
     function updateWorker(address newWorker_) external onlyOwner {
         require(
             newWorker_ != address(0),
@@ -108,7 +109,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         );
         
         _worker = newWorker_;
-        emit UpdateWorker(msg.sender, newWorker_);
+        //emit UpdateWorker(msg.sender, newWorker_);
     }
     
     function getActiveTime() public view returns (uint256)
@@ -117,22 +118,24 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     }
     
     //Declare an Event
+    /*
     event SetMarketPlaceFee(
         address indexed caller,
         uint256 indexed marketplaceFee_
     );
-    
+    */
     function setMarketPlaceFee(uint256 marketplaceFee_) external onlyOwner {
         _marketplaceFee = marketplaceFee_;
-        emit SetMarketPlaceFee(msg.sender, marketplaceFee_);
+        //emit SetMarketPlaceFee(msg.sender, marketplaceFee_);
     }
     
     //Declare an Event
+    /*
     event AddXTExt(
         address indexed caller,
         string indexed nameExt_
     );
-    
+    */
     function addXTExt( string memory nameExt_) external onlyOwner {
         
         uint loopCnt = _nameXTExt.length;
@@ -150,15 +153,16 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         );
             
         _nameXTExt.push(nameExt_);
-        emit AddXTExt(msg.sender, nameExt_);
+        //emit AddXTExt(msg.sender, nameExt_);
     }
 
     //Declare an Event
+    /*
     event RemoveXTExt(
         address indexed caller,
         string indexed nameExt_
     );
-
+    */
     function removeXTExt( string memory nameExt_) external onlyOwner {
         
         uint loopCnt = _nameXTExt.length;
@@ -177,7 +181,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
 
         _nameXTExt[loopCnt] = _nameXTExt[_nameXTExt.length - 1];
         _nameXTExt.pop();
-        emit RemoveXTExt(msg.sender, nameExt_);
+        //emit RemoveXTExt(msg.sender, nameExt_);
     }
     
     function getNameExt()  external view returns (string[] memory) {
@@ -185,20 +189,22 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     }
     
     //Declare an Event
+    /*
     event SetTokenForPayment(
         address indexed caller,
         IERC20 indexed token_
     );
-    
+    */
     //Declare an Event
+    /*
     event SetMintPrice(
         address indexed caller,
         uint indexed newMintPrice
-    );
+    );*/
     
     function setMintPrice(uint256 newMintPrice) external onlyOwner {
         mintPrice = newMintPrice;
-        emit SetMintPrice(msg.sender, newMintPrice);
+        //emit SetMintPrice(msg.sender, newMintPrice);
     }
     
     function getMintPrice() public view virtual returns (uint256) {
@@ -223,12 +229,12 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     
     function setTokenForRegisterNFTPayment(IERC20 token_) external onlyOwner {
         _tokenForRegisterNFT = token_;
-        emit SetTokenForPayment(msg.sender, token_);
+        //emit SetTokenForPayment(msg.sender, token_);
     }
     
     function setTokenForMarketPlacePayment(IERC20 token_) external onlyOwner {
         _tokenForMarketPlace = token_;
-        emit SetTokenForPayment(msg.sender, token_);
+        //emit SetTokenForPayment(msg.sender, token_);
     }
     
     function balanceTokenForPayment(uint paymentId) external view virtual returns (uint256) {
@@ -241,12 +247,13 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     }
     
     //Declare an Event
+    /*
     event WithdrawTokenForPayment(
         address indexed caller,
         address indexed beneficiary_,
         uint256 indexed balance_
     );
-    
+    */
     function withdrawTokenForPayment(uint paymentId) external {
         require(
             paymentId <= 2,
@@ -261,7 +268,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         // paymentToken(paymentId).safeTransferFrom(address(this), beneficiary(), currentBalance);
         paymentToken(paymentId).safeTransfer(beneficiary(), currentBalance);
-        emit WithdrawTokenForPayment(address(this), beneficiary(), currentBalance);
+        //emit WithdrawTokenForPayment(address(this), beneficiary(), currentBalance);
     }
     /**
      * @return the beneficiary of the tokens.
@@ -271,12 +278,13 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     }
     
     //Declare an Event
+    /*
     event SetBeneficiary(
         address indexed caller,
         address indexed beneficiary_,
         uint256 indexed activeTime
     );
-    
+    */
     function setBeneficiary( address beneficiary_) external onlyOwner {
         require(
             beneficiary_ != address(0),
@@ -286,15 +294,16 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         _newBeneficiary = beneficiary_;
         _beneficiaryActiveTime = block.timestamp + 24 hours;
         
-        emit SetBeneficiary(msg.sender, beneficiary_, _beneficiaryActiveTime);
+        //emit SetBeneficiary(msg.sender, beneficiary_, _beneficiaryActiveTime);
     }
     
     //Declare an Event
+    /*
     event RegisteredNewNFT(
         address indexed caller,
         string indexed newNFT
     );
-    
+    */
     function registerNFT(string memory newNFT, uint nameXTExtId_, string memory tokenURI_, uint numOfYear)
         external 
         returns (uint256)
@@ -360,23 +369,24 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         _setTokenURI(nftNameMap[NFTName_]._tokenId, tokenURI_);
         //Emit an event
-        emit RegisteredNewNFT(msg.sender, NFTName_);
+        //emit RegisteredNewNFT(msg.sender, NFTName_);
     
         return newItemId;
     }
     
     //Declare an Event
+    /*
     event ExtendNFTSubscription(
         address indexed caller,
         string indexed NFTName_
     );
-    
+    */
     function extendNFTSubscription(string memory NFTName_, uint numOfYear)
         external 
     {
         require(
             block.timestamp > getActiveTime(),
-            "Can't: before active time"
+            "before active time"
         );
         
         if(_beneficiary != _newBeneficiary && block.timestamp > _beneficiaryActiveTime) _beneficiary = _newBeneficiary;
@@ -413,7 +423,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
             numOfYear
         ));
         //Emit an event
-        emit ExtendNFTSubscription(msg.sender, NFTName_);
+        //emit ExtendNFTSubscription(msg.sender, NFTName_);
     }
     
     //Declare an Event
@@ -429,14 +439,14 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     {
         require(
             block.timestamp > getActiveTime(),
-            "Can't register before active time"
+            "before active time"
         );
         
         if(_beneficiary != _newBeneficiary && block.timestamp > _beneficiaryActiveTime) _beneficiary = _newBeneficiary;
         
         require(
             recipient != address(0),
-            "recipient is the zero address"
+            "recipient: zero address"
         );
         
         require(paymentToken(1).balanceOf(msg.sender) >= numOfYear * getMintPrice(), "Low Balance");
@@ -499,18 +509,19 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     }
     
     //Declare an Event
+    /*
     event ExtendImportedNFTSubscription(
         address indexed caller,
         string indexed NFTName_,
         uint indexed numOfYear
     );
-    
+    */
     function extendImportedNFTSubscription(string memory NFTName_, uint numOfYear)
         external onlyOwner 
     {
         require(
             block.timestamp > getActiveTime(),
-            "Can't register before active time"
+            "before active time"
         );
         
         if(_beneficiary != _newBeneficiary && block.timestamp > _beneficiaryActiveTime) _beneficiary = _newBeneficiary;
@@ -545,21 +556,22 @@ contract XTNFT is ERC721URIStorage,  Ownable {
             numOfYear
         ));
         //Emit an event
-        emit ExtendImportedNFTSubscription(msg.sender, NFTName_, numOfYear);
+        //emit ExtendImportedNFTSubscription(msg.sender, NFTName_, numOfYear);
     }
     
     //Declare an Event
+    /*
     event BuyNFTFromMarketPlace(
         address indexed caller,
         string indexed NFTName_
     );
-    
+    */
     function buyNFTFromMarketPlace(string memory NFTName_)
         external
     {
         require(
             block.timestamp > getActiveTime(),
-            "Can't buy before active time"
+            "before active time"
         );
         
         require(nftNameMap[NFTName_]._forSale, "Not For Sale");
@@ -622,16 +634,49 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         nftUserTokenMap[msg.sender]._tokenIds.push(nftNameMap[NFTName_]._tokenId);
         nftUserTokenMap[msg.sender]._tokenIdArrIndexMap[nftNameMap[NFTName_]._tokenId] = nftUserTokenMap[msg.sender]._tokenIds.length-1;
         //Emit an event
-        emit BuyNFTFromMarketPlace(msg.sender, NFTName_);
+        //emit BuyNFTFromMarketPlace(msg.sender, NFTName_);
     }
     
+    function transferNFT(string memory NFTName_, address recipient)
+        external
+    {
+        require(bytes(NFTName_).length > 0, "NFTName_: blank");
+        require(
+            recipient != address(0),
+            "zero address issue"
+        );
+
+        uint arrayLength = nftUserTokenMap[nftNameMap[NFTName_]._ownerAddress]._tokenIds.length;
+            
+        nftUserTokenMap[nftNameMap[NFTName_]._ownerAddress]._tokenIds[nftUserTokenMap[nftNameMap[NFTName_]._ownerAddress]._tokenIdArrIndexMap[nftNameMap[NFTName_]._tokenId]] = nftUserTokenMap[nftNameMap[NFTName_]._ownerAddress]._tokenIds[arrayLength - 1];
+        nftUserTokenMap[nftNameMap[NFTName_]._ownerAddress]._tokenIds.pop();
+
+        nftNameMap[NFTName_]._ownerAddress = recipient;//msg.sender;//recipient;
+        nftNameMap[NFTName_]._forSale = false;
+        nftNameMap[NFTName_]._salePrice = 0;
+        
+        nftNameMap[NFTName_]._NFTSaleHistory.push(NFTSaleStruct(
+            nftNameMap[NFTName_]._ownerAddress,
+            recipient,//msg.sender,
+            block.timestamp,
+            nftNameMap[NFTName_]._salePrice,
+            address(paymentToken(2)),
+            0
+        ));
+        
+        //use the map of address with tokenIds for a better performance when get the list of tokenIds by an address
+        nftUserTokenMap[recipient]._tokenIds.push(nftNameMap[NFTName_]._tokenId);
+        nftUserTokenMap[recipient]._tokenIdArrIndexMap[nftNameMap[NFTName_]._tokenId] = nftUserTokenMap[recipient]._tokenIds.length-1;
+    }
+
     //Declare an Event
+    /*
     event SetNFTSalePrice(
         address indexed caller,
         string indexed NFTName_,
         uint256 salePrice_
     );
-    
+    */
     function setNFTSalePrice(string memory NFTName_, uint256 salePrice_) external {
         
         address nftOwner = nftNameMap[NFTName_]._ownerAddress;
@@ -643,7 +688,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         
         nftNameMap[NFTName_]._forSale = true;
         nftNameMap[NFTName_]._salePrice = salePrice_;
-        emit SetNFTSalePrice(msg.sender, NFTName_, salePrice_);
+        //emit SetNFTSalePrice(msg.sender, NFTName_, salePrice_);
     }
     
     //get tokenIds by address
@@ -710,12 +755,13 @@ contract XTNFT is ERC721URIStorage,  Ownable {
     }
     
     //Declare an Event
+    /*
     event SetNFTURI(
         address indexed caller,
         string indexed NFTName_,
         string indexed tokenURI_
     );
-    
+    */
     function setNFTURI(string memory NFTName_, string memory tokenURI_) external
     {
         //require(paymentToken(1).balanceOf(msg.sender) >= getMintPrice(), "Low Balance");
@@ -737,7 +783,7 @@ contract XTNFT is ERC721URIStorage,  Ownable {
         _setTokenURI(nftNameMap[NFTName_]._tokenId, tokenURI_);
         nftNameMap[NFTName_]._tokenURI = tokenURI_;
         
-        emit SetNFTURI(msg.sender, NFTName_, tokenURI_);
+        //emit SetNFTURI(msg.sender, NFTName_, tokenURI_);
     }
     
     //Declare an Event
